@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora BlackboxAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 1rem;
+        }
+        
+        .calculator-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .calculator {
+            background-color: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .display {
+            background-color: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: right;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .operation {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            min-height: 1.2rem;
+            word-break: break-all;
+        }
+        
+        .result {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        
+        button {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 1rem 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .number {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .number:hover {
+            background-color: #4d4d4d;
+        }
+        
+        .operator {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .operator:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .function {
+            background-color: #3a3a3a;
+            color: var(--text-primary);
+        }
+        
+        .function:hover {
+            background-color: #4a4a4a;
+        }
+        
+        .equals {
+            grid-column: span 2;
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .equals:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .ai-section {
+            background-color: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .ai-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .ai-chat {
+            background-color: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        
+        .ai-message {
+            background-color: #4f46e533;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            max-width: 80%;
+        }
+        
+        .ai-message.ai-response {
+            background-color: #3d3d3d;
+            margin-left: auto;
+        }
+        
+        .ai-input {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .ai-input input {
+            flex: 1;
+            background-color: var(--bg-tertiary);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        .ai-input button {
+            background-color: var(--accent);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+        }
+        
+        .ai-input button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        @media (max-width: 600px) {
+            .calculator-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator">
+            <div class="display">
+                <div class="operation" id="operation"></div>
+                <div class="result" id="result">0</div>
+            </div>
+            <div class="buttons">
+                <button class="function" onclick="clearAll()">C</button>
+                <button class="function" onclick="backspace()">←</button>
+                <button class="function" onclick="percentage()">%</button>
+                <button class="operator" onclick="appendOperator('/')">/</button>
+                
+                <button class="number" onclick="appendNumber('7')">7</button>
+                <button class="number" onclick="appendNumber('8')">8</button>
+                <button class="number" onclick="appendNumber('9')">9</button>
+                <button class="operator" onclick="appendOperator('*')">×</button>
+                
+                <button class="number" onclick="appendNumber('4')">4</button>
+                <button class="number" onclick="appendNumber('5')">5</button>
+                <button class="number" onclick="appendNumber('6')">6</button>
+                <button class="operator" onclick="appendOperator('-')">-</button>
+                
+                <button class="number" onclick="appendNumber('1')">1</button>
+                <button class="number" onclick="appendNumber('2')">2</button>
+                <button class="number" onclick="appendNumber('3')">3</button>
+                <button class="operator" onclick="appendOperator('+')">+</button>
+                
+                <button class="number" onclick="appendNumber('0')">0</button>
+                <button class="number" onclick="appendDecimal()">.</button>
+                <button class="equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+        
+        <div class="ai-section">
+            <div class="ai-header">
+                <div class="ai-icon">BB</div>
+                <h2>BlackboxAI Assistente</h2>
+            </div>
+            <div class="ai-chat" id="aiChat">
+                <div class="ai-message ai-response">Olá! Sou o BlackboxAI. Posso te ajudar com cálculos ou responder suas perguntas sobre a calculadora.</div>
+            </div>
+            <div class="ai-input">
+                <input type="text" id="aiInput" placeholder="Digite sua mensagem..." onkeypress="handleAiInputKeyPress(event)">
+                <button onclick="sendAiMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis da calculadora
+        let currentInput = '0';
+        let previousInput = '0';
+        let operation = null;
+        let resetInput = false;
+        
+        // Elementos da calculadora
+        const resultDisplay = document.getElementById('result');
+        const operationDisplay = document.getElementById('operation');
+        const aiChat = document.getElementById('aiChat');
+        const aiInput = document.getElementById('aiInput');
+        
+        // Atualiza o display
+        function updateDisplay() {
+            resultDisplay.textContent = currentInput;
+            if (operation !== null) {
+                operationDisplay.textContent = `${previousInput} ${operation} ${currentInput.includes('e') ? '' : currentInput}`;
+            } else {
+                operationDisplay.textContent = '';
+            }
+        }
+        
+        // Adiciona número
+        function appendNumber(number) {
+            if (currentInput === '0' || resetInput) {
+                currentInput = number;
+                resetInput = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+        
+        // Adiciona ponto decimal
+        function appendDecimal() {
+            if (resetInput) {
+                currentInput = '0.';
+                resetInput = false;
+                updateDisplay();
+                return;
+            }
+            
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+                updateDisplay();
+            }
+        }
+        
+        // Adiciona operador
+        function appendOperator(op) {
+            if (operation !== null && !resetInput) {
+                calculate();
+            }
+            
+            operation = op;
+            previousInput = currentInput;
+            resetInput = true;
+            updateDisplay();
+        }
+        
+        // Calcula o resultado
+        function calculate() {
+            if (operation === null || resetInput) return;
+            
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+            
+            switch (operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        result = 'Erro';
+                        break;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            currentInput = result.toString();
+            operation = null;
+            resetInput = true;
+            updateDisplay();
+        }
+        
+        // Limpa tudo
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '0';
+            operation = null;
+            resetInput = false;
+            updateDisplay();
+        }
+        
+        // Apaga o último dígito
+        function backspace() {
+            if (currentInput.length === 1 || (currentInput.length === 2 && currentInput.startsWith('-'))) {
+                currentInput = '0';
+            } else if (currentInput !== '0') {
+                currentInput = currentInput.slice(0, -1);
+            }
+            updateDisplay();
+        }
+        
+        // Calcula porcentagem
+        function percentage() {
+            if (operation === '+' || operation === '-') {
+                // Porcentagem em relação ao número anterior para adição e subtração
+                const percentage = parseFloat(currentInput) / 100 * parseFloat(previousInput);
+                currentInput = percentage.toString();
+            } else {
+                // Porcentagem simples para outros casos
+                currentInput = (parseFloat(currentInput) / 100).toString();
+            }
+            updateDisplay();
+        }
+        
+        // Manipulador de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(e.key);
+            } else if (['+', '-', '*', '/'].includes(e.key)) {
+                appendOperator(e.key);
+            } else if (e.key === '.') {
+                appendDecimal();
+            } else if (e.key === 'Enter') {
+                calculate();
+            } else if (e.key === 'Escape') {
+                clearAll();
+            } else if (e.key === 'Backspace') {
+                backspace();
+            } else if (e.key === '%') {
+                percentage();
+            }
+        });
+        
+        // Funções do BlackboxAI
+        function addAiMessage(message, isResponse = false) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `ai-message ${isResponse ? 'ai-response' : ''}`;
+            messageElement.textContent = message;
+            aiChat.appendChild(messageElement);
+            aiChat.scrollTop = aiChat.scrollHeight;
+        }
+        
+        function handleAiInputKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendAiMessage();
+            }
+        }
+        
+        function sendAiMessage() {
+            const message = aiInput.value.trim();
+            if (message) {
+                addAiMessage(message);
+                aiInput.value = '';
+                
+                // Simula um pequeno delay para a resposta
+                setTimeout(() => {
+                    const response = generateAiResponse(message);
+                    addAiMessage(response, true);
+                }, 500);
+            }
+        }
+        
+        function generateAiResponse(message) {
+            // Expressões para cálculos simples
+            if (message.match(/^quanto é [0-9]+\s*[\+\-\*\/]\s*[0-9]+\s*\??$/i)) {
+                const parts = message.match(/([0-9]+)\s*([\+\-\*\/])\s*([0-9]+)/i);
+                const num1 = parseFloat(parts[1]);
+                const num2 = parseFloat(parts[3]);
+                const op = parts[2];
+                
+                let result, opSymbol;
+                switch(op) {
+                    case '+': 
+                        result = num1 + num2;
+                        opSymbol = 'mais';
+                        break;
+                    case '-': 
+                        result = num1 - num2;
+                        opSymbol = 'menos';
+                        break;
+                    case '*': 
+                        result = num1 * num2;
+                        opSymbol = 'vezes';
+                        break;
+                    case '/': 
+                        if (num2 === 0) return 'Divisão por zero não é permitida.';
+                        result = num1 / num2;
+                        opSymbol = 'dividido por';
+                        break;
+                }
+                
+                return `${num1} ${opSymbol} ${num2} é igual a ${result}`;
+            }
+            
+            // Respostas pré-definidas
+            const greetingResponses = [
+                "Olá! Como posso te ajudar hoje?",
+                "Oi! Estou aqui para ajudar com cálculos ou outras perguntas.",
+                "Olá! Digite uma operação ou pergunta que eu te ajudo."
+            ];
+            
+            const helpResponses = [
+                "Posso ajudar com cálculos matemáticos como adição, subtração, multiplicação e divisão.",
+                "Basta digitar números e usar os botões da calculadora, ou me perguntar diretamente sobre cálculos.",
+                "Experimente digitar algo como 'quanto é 15 + 27?' para eu calcular por você."
+            ];
+            
+            const thanksResponses = [
+                "De nada! Estou aqui para ajudar.",
+                "Sem problemas! Precisando é só chamar.",
+                "Fico feliz em ajudar! Qualquer coisa, é só perguntar."
+            ];
+            
+            // Verifica o tipo de mensagem
+            if (message.match(/^(oi|olá|ola|eae|iai|iae|hello|hi)\s*!*$/i)) {
+                return greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
+            } else if (message.match(/^(ajuda|o que você faz|help)\s*\??$/i)) {
+                return helpResponses[Math.floor(Math.random() * helpResponses.length)];
+            } else if (message.match(/^(obrigado|valeu|obg|obgd|thanks|thank you|agradeço)\s*!*\??$/i)) {
+                return thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
+            } else if (message.match(/calculadora|calcular|conta|matemática|operação/i)) {
+                return "Posso ajudar com operações matemáticas! Use os botões da calculadora ou me pergunte diretamente, como 'quanto é 25 * 4?'.";
+            } else {
+                return "Desculpe, eu só entendo perguntas sobre matemática básica ou a calculadora. Tente me perguntar algo como 'quanto é 8 + 5?' ou 'como fazer uma divisão?'.";
+            }
+        }
+    </script>
+</body>
+</html>
